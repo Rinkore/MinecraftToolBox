@@ -1,7 +1,8 @@
 import asyncio
-import codecs
 import socket
+import codecs
 import time
+import json
 
 
 class MinecraftServerStatusTest:
@@ -47,7 +48,7 @@ async def get_ports_info(hostname, ports):
 
     for port in ports:
         if not output.get(port):
-            print(f"Port {port}: ALL REQUEST FAILED")
+            print(f"{hostname}:{port}----ALL REQUEST FAILED")
 
     return output
 
@@ -57,8 +58,10 @@ async def print_ports_info(hostname, ports):
     for port, port_results in ports_info.items():
         delay_sum = sum(result[2] for result in port_results)
         avg_delay = delay_sum / len(port_results)
-        print(f"Port {port}: {avg_delay:.2f}ms delay, Info: {port_results[0][3]}")
+        print(f"{hostname}:{port}----{avg_delay:.2f}ms delay, Info: {port_results[0][3]}")
 
-
-asyncio.get_event_loop().run_until_complete(
-    print_ports_info('ipv4.rinkore.com', [13999, 13801, 13902, 13903, 13904, 13905, 2214, 2213, 2212, 2211, 2210]))
+with open('./Server/ServerList.json') as ServerListJson:
+    data = json.load(ServerListJson)
+    ServerList = data['hosts']
+    for servers in ServerList:
+        asyncio.run(print_ports_info(servers['ip'], servers['ports']))
