@@ -56,14 +56,14 @@ def read_mod_versions(mods_folder):
                 try:
                     json_data = zip_ref.read('fabric.mod.json')
                 except KeyError:
-                    print("{file_name} does not contain a fabric.mod.json file")
+                    print(f"{file_name} does not contain a fabric.mod.json file")
                     continue
 
             # 解析json数据
             try:
                 mod_data = json.loads(json_data)
             except json.decoder.JSONDecodeError:
-                print("{file_name} can not be decoded")
+                print(f"{file_name} can not be decoded")
                 continue
 
             # 输出版本信息到日志文件
@@ -83,12 +83,12 @@ def read_mod_versions(mods_folder):
             except KeyError:
                 print("fabric.mod.json file does not contain java_version")
 
-            print("Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
+            print(f"Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
 
 
 def write_to_log(log_version, log_file):
     with open(log_file, "a") as f:
-        f.write("{log_version}\n")
+        f.write(f"{log_version}\n")
 
 
 def init_log(log_file):
