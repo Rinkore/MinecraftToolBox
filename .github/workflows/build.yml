@@ -1,0 +1,33 @@
+name: Code Analysis and Quality Fixes
+on:
+  push:
+    branches:
+      - main
+jobs:
+  analysis-and-fix:
+    name: Analysis and Quality Fixes
+    runs-on: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          organization: rinkore
+          project: MinecraftToolBox
+          token: ${{ secrets.SONAR_TOKEN }}
+      - name: Apply code quality fixes
+        run: |
+          pip install sonar-scanner
+          sonar-scanner \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=rinkore_MinecraftToolBox \
+            -Dsonar.organization=rinkore \
+            -Dsonar.sources=. \
+            -Dsonar.exclusions=**/tests/**,**/venv/**,**/env/** \
+            -Dsonar.language=py \
+            -Dsonar.qualitygate.wait=true
