@@ -10,7 +10,6 @@ minecraft_version = "none"
 fabric_version = "none"
 java_version = "none"
 version = ""
-lastest = "logs/lastest.log"
 
 
 def folder_select():
@@ -41,10 +40,6 @@ def folder_select():
 
 
 def read_mod_versions(mods_folder):
-    init_log("logs/minecraft.log")
-    init_log("logs/java.log")
-    init_log("logs/fabric.log")
-
     # 遍历mods文件夹中的所有.jar文件
     global minecraft_version, fabric_version, java_version
     for file_name in os.listdir(mods_folder):
@@ -91,20 +86,20 @@ def write_to_log(log_version, log_file):
         f.write(f"{log_version}\n")
 
 
-def init_log(log_file):
-    if os.path.exists(log_file):
-        os.remove(log_file)
+def init_logs(log_files):
+    for log_file in log_files:
+        if os.path.exists(log_file):
+            os.remove(log_file)
 
 
 def get_minecraft_or_fabric_version(input_version):
-    global version, lastest
+    global version
+    lastest = "logs/lastest.log"
     with open(input_version + '.log', 'r') as f:
         lines = f.readlines()
-
     # 初始化版本号区间为最小和最大版本
     min_version = "0.0.0"
     max_version = "999999999.999999999.999999999"
-
     # 循环读取每个版本号区间，更新最小和最大版本
     for line in lines:
         version_range = line.strip()
@@ -119,11 +114,8 @@ def get_minecraft_or_fabric_version(input_version):
                 version = semver.parse_version_info(str(version_range[2:]))
                 if not semver.match(min_version, version_range):
                     min_version = str(version)
-            except ValueError:
-                write_to_log(("不规范的版本号", line), lastest)
-            except TypeError:
-                write_to_log(("不规范的版本类型", line), lastest)
-
+            except (ValueError, TypeError):
+                write_to_log(("不规范的版本号或类型", line), lastest)
         elif version_range.startswith("<"):
             # 如果版本区间以 < 开头，则更新最大版本号
             version = semver.parse_version_info(version_range[1:])
@@ -135,7 +127,7 @@ def get_minecraft_or_fabric_version(input_version):
                 version = semver.parse_version_info(version_range)
                 min_version = max_version = str(version)
             except ValueError:
-                write_to_log(("不规范的版本号" + line), lastest)
+                write_to_log(("不规范的版本号", line), lastest)
         write_to_log("Yes" + str(version), lastest)
     # 最终返回符合所有版本区间的最新的正式版本号
     print(input_version[5:] + "_version", str(min_version))
@@ -153,8 +145,8 @@ def get_java_version():
 
 
 # 调用函数
+init_logs(["logs/minecraft.log", "logs/java.log", "logs/fabric.log", "logs/lastest.log"])
 folder_select()
-init_log(lastest)
 get_minecraft_or_fabric_version("logs/minecraft")
 get_minecraft_or_fabric_version("logs/fabric")
 get_java_version()
