@@ -23,7 +23,6 @@ class MinecraftServerStatusTest:
             data_raw = await asyncio.wait_for(reader.read(1024), timeout=self.timeout)
             writer.close()
 
-            # data = data_raw.decode('cp437').split('\x00\x00\x00')
             server_info = codecs.utf_16_be_decode(data_raw[1:])[0].split('\x00')
             info = {'version': server_info[2], 'motd': server_info[3], 'online_players': server_info[4],
                     'max_players': server_info[5]}

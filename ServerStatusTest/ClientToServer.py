@@ -10,6 +10,7 @@ minecraft_version = "none"
 fabric_version = "none"
 java_version = "none"
 version = ""
+lastest = "logs/lastest.log"
 
 
 def folder_select():
@@ -55,40 +56,39 @@ def read_mod_versions(mods_folder):
                 try:
                     json_data = zip_ref.read('fabric.mod.json')
                 except KeyError:
-                    print(f"{file_name} does not contain a fabric.mod.json file")
+                    print("{file_name} does not contain a fabric.mod.json file")
                     continue
 
             # 解析json数据
             try:
                 mod_data = json.loads(json_data)
             except json.decoder.JSONDecodeError:
-                print(f"{file_name} can not be decoded")
+                print("{file_name} can not be decoded")
                 continue
 
-            # 读取depends下的版本信息
             # 输出版本信息到日志文件
             try:
                 minecraft_version = mod_data["depends"]["minecraft"]
                 write_to_log(minecraft_version, "logs/minecraft.log")
             except KeyError:
-                print(f"fabric.mod.json file does not contain minecraft_version")
+                print("fabric.mod.json file does not contain minecraft_version")
             try:
                 fabric_version = mod_data["depends"]["fabricloader"]
                 write_to_log(fabric_version, "logs/fabric.log")
             except KeyError:
-                print(f"fabric.mod.json file does not contain fabric_version")
+                print("fabric.mod.json file does not contain fabric_version")
             try:
                 java_version = mod_data["depends"]["java"]
                 write_to_log(java_version, "logs/java.log")
             except KeyError:
-                print(f"fabric.mod.json file does not contain java_version")
+                print("fabric.mod.json file does not contain java_version")
 
-            print(f"Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
+            print("Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
 
 
 def write_to_log(log_version, log_file):
     with open(log_file, "a") as f:
-        f.write(f"{log_version}\n")
+        f.write("{log_version}\n")
 
 
 def init_log(log_file):
@@ -97,7 +97,7 @@ def init_log(log_file):
 
 
 def get_minecraft_or_fabric_version(input_version):
-    global version
+    global version, lastest
     with open(input_version + '.log', 'r') as f:
         lines = f.readlines()
 
@@ -120,9 +120,9 @@ def get_minecraft_or_fabric_version(input_version):
                 if not semver.match(min_version, version_range):
                     min_version = str(version)
             except ValueError:
-                write_to_log(("不规范的版本号", line), "logs/lastest.log")
+                write_to_log(("不规范的版本号", line), lastest)
             except TypeError:
-                write_to_log(("不规范的版本类型", line), "logs/lastest.log")
+                write_to_log(("不规范的版本类型", line), lastest)
 
         elif version_range.startswith("<"):
             # 如果版本区间以 < 开头，则更新最大版本号
@@ -135,8 +135,8 @@ def get_minecraft_or_fabric_version(input_version):
                 version = semver.parse_version_info(version_range)
                 min_version = max_version = str(version)
             except ValueError:
-                write_to_log(("不规范的版本号" + line), "logs/lastest.log")
-        write_to_log("Yes" + str(version), "logs/lastest.log")
+                write_to_log(("不规范的版本号" + line), lastest)
+        write_to_log("Yes" + str(version), lastest)
     # 最终返回符合所有版本区间的最新的正式版本号
     print(input_version[5:] + "_version", str(min_version))
 
@@ -154,7 +154,7 @@ def get_java_version():
 
 # 调用函数
 folder_select()
-init_log("logs/lastest.log")
+init_log(lastest)
 get_minecraft_or_fabric_version("logs/minecraft")
 get_minecraft_or_fabric_version("logs/fabric")
 get_java_version()
