@@ -103,8 +103,8 @@ def init_logs(log_files):
         shutil.rmtree("logs")
     os.makedirs("logs")
     for log_file in log_files:
-        file = open(log_file, "w")
-        file.close()
+        log = open(log_file, "w")
+        log.close()
 
 
 def get_minecraft_or_fabric_version(input_version):
@@ -180,12 +180,11 @@ def install_task(file_to_download):
                                    encoding="GBK")
         stdout, stderr = install.communicate()
         print(stdout)
-        file = open(dst_folder+"/StartServer.bat", "w")
-        file.write("java -jar -server fabric-server-launch.jar nogui")
-        file.close()
+        start_server = open(dst_folder+"/StartServer.bat", "w")
+        start_server.write("java -jar -server fabric-server-launch.jar nogui")
+        start_server.close()
     else:
         print("安装错误")
-        return
 
 
 # 调用函数
