@@ -2,24 +2,35 @@ import json
 import os
 import shutil
 import tkinter as tk
+import urllib
 import zipfile
 from tkinter import filedialog
 import semver
+import subprocess
+import requests
+from tqdm import tqdm
 
 minecraft_version = "none"
 fabric_version = "none"
 java_version = "none"
 version = ""
+src_folder = ""
+dst_folder = ""
+minecraft_log = "logs/minecraft.log"
+fabric_log = "logs/fabric.log"
+java_log = "logs/java.log"
+lastest_log = "logs/lastest.log"
 
 
 def folder_select():
+    global src_folder, dst_folder
     # 弹出对话框让用户选择文件夹
     root = tk.Tk()
     root.withdraw()
     src_folder = filedialog.askdirectory(title="请选择Minecraft客户端文件夹")
 
     # 定义server文件夹路径
-    dst_folder = os.path.join(os.path.dirname(src_folder), "server")
+    dst_folder = os.path.join(os.path.dirname(src_folder), "server-by-MTB")
 
     # 如果server文件夹已经存在，则先删除它
     if os.path.exists(dst_folder):
@@ -32,7 +43,8 @@ def folder_select():
     for folder_name in folder_list:
         src = os.path.join(src_folder, folder_name)
         dst = os.path.join(dst_folder, folder_name)
-        shutil.copytree(src, dst)
+        if os.path.exists(src):
+            shutil.copytree(src, dst)
 
     # 执行read_mod_versions函数，读取mod的版本信息
     mods_folder = os.path.join(dst_folder, "mods")
@@ -64,12 +76,12 @@ def read_mod_versions(mods_folder):
             # 输出版本信息到日志文件
             try:
                 minecraft_version = mod_data["depends"]["minecraft"]
-                write_to_log(minecraft_version, "logs/minecraft.log")
+                write_to_log(minecraft_version, minecraft_log)
             except KeyError:
                 print("fabric.mod.json file does not contain minecraft_version")
             try:
                 fabric_version = mod_data["depends"]["fabricloader"]
-                write_to_log(fabric_version, "logs/fabric.log")
+                write_to_log(fabric_version, fabric_log)
             except KeyError:
                 print("fabric.mod.json file does not contain fabric_version")
             try:
@@ -87,15 +99,18 @@ def write_to_log(log_version, log_file):
 
 
 def init_logs(log_files):
+    if os.path.exists("logs"):
+        shutil.rmtree("logs")
+    os.makedirs("logs")
     for log_file in log_files:
-        if os.path.exists(log_file):
-            os.remove(log_file)
+        file = open(log_file, "w")
+        file.close()
 
 
 def get_minecraft_or_fabric_version(input_version):
-    global version
+    global version, minecraft_version, fabric_version
     lastest = "logs/lastest.log"
-    with open(input_version + '.log', 'r') as f:
+    with open(input_version, 'r') as f:
         lines = f.readlines()
     # 初始化版本号区间为最小和最大版本
     min_version = "0.0.0"
@@ -131,11 +146,15 @@ def get_minecraft_or_fabric_version(input_version):
         write_to_log("Yes" + str(version), lastest)
     # 最终返回符合所有版本区间的最新的正式版本号
     print(input_version[5:] + "_version", str(min_version))
+    if input_version == minecraft_log:
+        minecraft_version = str(min_version)
+    elif input_version == fabric_log:
+        fabric_version = str(min_version)
 
 
 def get_java_version():
     max_version = 0
-    with open('logs/java.log', 'r') as f:
+    with open(java_log, 'r') as f:
         lines = f.readlines()
     for line in lines:
         version_range = line.strip()
@@ -144,9 +163,35 @@ def get_java_version():
     print("java_version", str(max_version))
 
 
+def install_task(file_to_download):
+    # 设置文件下载链接和保存路径
+    if file_to_download == "fabric":
+        url = "https://maven.fabricmc.net/net/fabricmc/fabric-installer/0.11.2/fabric-installer-0.11.2.jar"
+        print("正在下载fabric-installer.jar")
+        # 下载文件并显示进度条
+        with tqdm(unit='B', unit_scale=True, unit_divisor=1024, miniters=1) as t:
+            urllib.request.urlretrieve(url, dst_folder + "\\fabric-installer.jar",
+                                       reporthook=lambda b, bsize, tsize: t.update(bsize))
+        print("fabric-installer.jar下载完成")
+        print(f"/r安装fabric中{last_time}")
+        command = f'java -jar fabric-installer.jar server -mcversion {minecraft_version} -downloadMinecraft'
+        # 使用subprocess运行命令
+        install = subprocess.Popen(command, cwd=dst_folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   encoding="GBK")
+        stdout, stderr = install.communicate()
+        print(stdout)
+        file = open(dst_folder+"/StartServer.bat", "w")
+        file.write("java -jar -server fabric-server-launch.jar nogui")
+        file.close()
+    else:
+        print("安装错误")
+        return
+
+
 # 调用函数
-init_logs(["logs/minecraft.log", "logs/java.log", "logs/fabric.log", "logs/lastest.log"])
+init_logs([minecraft_log, java_log, fabric_log, lastest_log])
 folder_select()
-get_minecraft_or_fabric_version("logs/minecraft")
-get_minecraft_or_fabric_version("logs/fabric")
+get_minecraft_or_fabric_version(minecraft_log)
+get_minecraft_or_fabric_version(fabric_log)
 get_java_version()
+install_task("fabric")
