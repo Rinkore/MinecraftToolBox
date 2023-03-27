@@ -26,9 +26,9 @@ def function_select():
     canvas.grid(row=2, columnspan=2)
 
     # 显示方框介绍
-    rect_1 = canvas.create_rectangle(10, 10, 200, 100, fill="white")
+    canvas.create_rectangle(10, 10, 200, 100, fill="white")
     canvas.create_text(105, 55, text="选择服务端下的logs文件夹", font=("Arial", 10), fill="black")
-    rect_2 = canvas.create_rectangle(210, 10, 400, 100, fill="white")
+    canvas.create_rectangle(210, 10, 400, 100, fill="white")
     canvas.create_text(305, 55, text=f"选择{fabricloader}", font=("Arial", 10), fill="black")
 
     # 为窗口关闭事件绑定处理函数，避免程序出错
