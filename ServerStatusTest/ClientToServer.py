@@ -4,7 +4,6 @@ import shutil
 import tkinter as tk
 import urllib
 import zipfile
-from tkinter import filedialog
 import semver
 import subprocess
 import requests
@@ -173,13 +172,13 @@ def install_task(file_to_download):
             urllib.request.urlretrieve(url, dst_folder + "\\fabric-installer.jar",
                                        reporthook=lambda b, bsize, tsize: t.update(bsize))
         print("fabric-installer.jar下载完成")
-        print(f"/r安装fabric中{last_time}")
+        print(f"安装fabric中")
         command = f'java -jar fabric-installer.jar server -mcversion {minecraft_version} -downloadMinecraft'
         # 使用subprocess运行命令
         install = subprocess.Popen(command, cwd=dst_folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    encoding="GBK")
-        stdout, stderr = install.communicate()
-        print(stdout)
+        for line in install.stdout:
+            print(line.rstrip())
         start_server = open(dst_folder+"/StartServer.bat", "w")
         start_server.write("java -jar -server fabric-server-launch.jar nogui")
         start_server.close()
