@@ -1,4 +1,5 @@
 import os
+import re
 import tkinter as tk
 from tkinter import filedialog
 
@@ -9,7 +10,9 @@ def clean_folder(folder_path):
     其中保留了所有字母数字字符、斜杠、下划线、点和破折号。
     最后，使用os.rename方法将原文件名重命名为新文件名。"""
     for filename in os.listdir(folder_path):
-        new_filename = ''.join(c for c in filename if c.isalnum() or c in '/._-')
+        # 删除方括号及其中的文字
+        new_filename = re.sub('\[.*?\]', '', filename)
+        new_filename = ''.join(c for c in new_filename if c.isalnum() or c in '/._-')
         os.rename(os.path.join(folder_path, filename), os.path.join(folder_path, new_filename))
 
 
