@@ -1,0 +1,23 @@
+{
+  "java.lang.UnsupportedClassVersionError": {
+    "regex": ".*UnsupportedClassVersionError:.*class file version (\\d+\\.\\d+).*up to (\\d+\\.\\d+)",
+    "message": "Java版本不兼容，当前版本只支持$1的版本，该类文件版本为$2,(版本-44即对应的java版本）"
+  },
+  "java.lang.RuntimeException": {
+    "regex": ".*provided by '(\\S+)'.*",
+    "message": "$1抛出了错误"
+  },
+  "java.lang.NoSuchMethodError": {
+    "regex": ".*NoSuchMethodError: (\\S+).*",
+    "message": "找不到方法$1，请检查方法名和参数是否正确"
+  },
+  "java.lang.NullPointerException": {
+    "regex": ".*NullPointerException.*",
+    "message": "空指针异常"
+  },
+  "java.lang.ClassNotFoundException": {
+    "regex": ".*ClassNotFoundException: (\\S+).*",
+    "message": "找不到类$1，请检查类路径是否正确"
+  }
+}
+

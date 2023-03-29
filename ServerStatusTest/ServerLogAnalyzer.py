@@ -1,50 +1,12 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
+import json
+import re
 
 # 定义全局变量，分别表示日志文件夹路径、最新日志文件名、fabricloader日志文件名
 logs_folder = ""
-lastest = "lastest.log"
 fabricloader = "fabricloader.log"
-
-
-# 定义函数，创建窗口并显示两个按钮和文本介绍
-def function_select():
-    root = tk.Tk()
-    root.title("Button Selector")
-
-    # 创建一个 Button，用于选择日志文件夹
-    button_1 = tk.Button(root, text="选择文件夹", command=folder_select)
-    button_1.grid(row=1, column=0)
-
-    # 创建一个 Button，用于选择fabricloader日志文件
-    button_2 = tk.Button(root, text=f"选择{fabricloader}", command=file_select)
-    button_2.grid(row=1, column=1)
-
-    # 创建一个 Canvas，用于显示方框介绍
-    canvas = tk.Canvas(root, width=400, height=200)
-    canvas.grid(row=2, columnspan=2)
-
-    # 显示方框介绍
-    canvas.create_rectangle(10, 10, 200, 100, fill="white")
-    canvas.create_text(105, 55, text="选择服务端下的logs文件夹", font=("Arial", 10), fill="black")
-    canvas.create_rectangle(210, 10, 400, 100, fill="white")
-    canvas.create_text(305, 55, text=f"选择{fabricloader}", font=("Arial", 10), fill="black")
-
-    # 为窗口关闭事件绑定处理函数，避免程序出错
-    root.protocol("WM_DELETE_WINDOW", root.quit)
-
-    # 进入主循环，等待用户操作
-    root.mainloop()
-
-
-# 定义函数，让用户选择日志文件夹
-def folder_select():
-    global logs_folder
-    # 弹出对话框让用户选择文件夹
-    root = tk.Tk()
-    root.withdraw()
-    logs_folder = filedialog.askdirectory(title="请选择Minecraft日志文件夹（即logs）")
 
 
 # 定义函数，让用户选择fabricloader日志文件
@@ -54,26 +16,30 @@ def file_select():
     root = tk.Tk()
     root.withdraw()
     fabricloader = filedialog.askopenfilename(title=f"请选择{fabricloader}")
+    with open(fabricloader, 'r', encoding='gbk') as f:
+        log = f.read()
 
+    # 读取错误信息和错误原因的JSON文件
+    with open('.\\server\\fabricloader.log.json', 'r', encoding='utf-8') as f:
+        error_dict = json.load(f)
 
-#     TODO：分析fabricloader.log找出阻止服务端启动的原因（java版本或mod）
-
-# 定义函数，分析最新日志文件内容
-def lastest_analyzer():
-    global lastest
-    lastest_file = os.path.join(logs_folder, lastest)
-    print(logs_folder, lastest)
-    if os.path.exists(lastest_file):
-        print("File found:", lastest_file)
-        with open(lastest_file, 'r') as f:
-            line_count = 0
-            for line in f:
-                line_count += 1
-                print(f"Line {line_count}: {line.strip()}")
-    #             TODO：对lastest.log文件分析获取被禁用的客户端mod以及导致服务端无法启动的mod让用户选择删除
+    # 遍历错误信息和错误原因的字典，查找匹配错误信息的正则表达式
+    # 遍历错误信息和错误原因的字典，查找匹配错误信息的正则表达式
+    for error, error_info in error_dict.items():
+        match = re.search(error_info['regex'], log)
+        if match:
+            # 如果找到匹配的正则表达式，输出对应的错误原因
+            message = error_info['message']
+            # 使用正则表达式查找所有的$+数字，并替换为对应的匹配组
+            for i in range(1, len(match.groups()) + 1):
+                message = re.sub(f'\${i}', match.group(i), message)
+            print(f"Error: {error}")
+            print(f"Reason: {message}")
+            break
     else:
-        print("File not found in selected folder.")
+        # 如果没有找到匹配的正则表达式，输出未知错误
+        print("Unknown error.")
 
 
 # 启动程序
-function_select()
+file_select()
