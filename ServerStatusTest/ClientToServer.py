@@ -8,6 +8,7 @@ import semver
 import subprocess
 import requests
 from tqdm import tqdm
+from tkinter import filedialog
 
 minecraft_version = "none"
 fabric_version = "none"
@@ -51,45 +52,47 @@ def folder_select():
 
 
 def read_mod_versions(mods_folder):
-    # 遍历mods文件夹中的所有.jar文件
     global minecraft_version, fabric_version, java_version
     for file_name in os.listdir(mods_folder):
-        if file_name.endswith(".jar"):
-            file_path = os.path.join(mods_folder, file_name)
+        if not file_name.endswith(".jar"):
+            continue
 
-            # 使用zipfile模块读取fabric.mod.json文件
+        file_path = os.path.join(mods_folder, file_name)
+
+        try:
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                try:
-                    json_data = zip_ref.read('fabric.mod.json')
-                except KeyError:
-                    print(f"{file_name} does not contain a fabric.mod.json file")
-                    continue
+                json_data = zip_ref.read('fabric.mod.json')
+        except (KeyError, zipfile.BadZipFile):
+            print(f"{file_name} does not contain a valid fabric.mod.json file")
+            continue
 
-            # 解析json数据
-            try:
-                mod_data = json.loads(json_data)
-            except json.decoder.JSONDecodeError:
-                print(f"{file_name} can not be decoded")
-                continue
+        try:
+            mod_data = json.loads(json_data)
+        except json.decoder.JSONDecodeError:
+            print(f"{file_name} can not be decoded")
+            continue
+        if "depends" not in mod_data:
+            print(f"{file_name}: fabric.mod.json file does not contain 'depends' key")
+            continue
+        minecraft_version = mod_data["depends"].get("minecraft")
+        if minecraft_version:
+            write_to_log(minecraft_version, minecraft_log)
+        else:
+            print(f"{file_name}: fabric.mod.json file does not contain minecraft_version")
 
-            # 输出版本信息到日志文件
-            try:
-                minecraft_version = mod_data["depends"]["minecraft"]
-                write_to_log(minecraft_version, minecraft_log)
-            except KeyError:
-                print("fabric.mod.json file does not contain minecraft_version")
-            try:
-                fabric_version = mod_data["depends"]["fabricloader"]
-                write_to_log(fabric_version, fabric_log)
-            except KeyError:
-                print("fabric.mod.json file does not contain fabric_version")
-            try:
-                java_version = mod_data["depends"]["java"]
-                write_to_log(java_version, "logs/java.log")
-            except KeyError:
-                print("fabric.mod.json file does not contain java_version")
+        fabric_version = mod_data["depends"].get("fabricloader")
+        if fabric_version:
+            write_to_log(fabric_version, fabric_log)
+        else:
+            print(f"{file_name}: fabric.mod.json file does not contain fabric_version")
 
-            print(f"Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
+        java_version = mod_data["depends"].get("java")
+        if java_version:
+            write_to_log(java_version, "logs/java.log")
+        else:
+            print(f"{file_name}: fabric.mod.json file does not contain java_version")
+
+        print(f"Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
 
 
 def write_to_log(log_version, log_file):
@@ -111,44 +114,36 @@ def get_minecraft_or_fabric_version(input_version):
     lastest = "logs/lastest.log"
     with open(input_version, 'r') as f:
         lines = f.readlines()
-    # 初始化版本号区间为最小和最大版本
-    min_version = "0.0.0"
-    max_version = "999999999.999999999.999999999"
-    # 循环读取每个版本号区间，更新最小和最大版本
+    min_version, max_version = "0.0.0", "999999999.999999999.999999999"
     for line in lines:
         version_range = line.strip()
         if version_range == '*':
             continue
         if version_range.startswith("~"):
-            # 如果版本区间以 ~ 开头，则表示是最新的修订版，只需要更新最小版本号
             min_version = version_range[1:]
         elif version_range.startswith(">="):
-            # 如果版本区间以 >= 开头，则更新最小版本号
             try:
                 version = semver.parse_version_info(str(version_range[2:]))
                 if not semver.match(min_version, version_range):
                     min_version = str(version)
             except (ValueError, TypeError):
-                write_to_log(("不规范的版本号或类型", line), lastest)
+                write_to_log(("Invalid version number or type", line), lastest)
         elif version_range.startswith("<"):
-            # 如果版本区间以 < 开头，则更新最大版本号
             version = semver.parse_version_info(version_range[1:])
             if not semver.match(max_version, version_range):
                 max_version = str(version)
         else:
             try:
-                # 如果版本区间既不是以 ~ 开头，也不是以 >= 或 < 开头，则表示是精确版本号
                 version = semver.parse_version_info(version_range)
                 min_version = max_version = str(version)
             except ValueError:
-                write_to_log(("不规范的版本号", line), lastest)
-        write_to_log("Yes" + str(version), lastest)
-    # 最终返回符合所有版本区间的最新的正式版本号
-    print(input_version[5:] + "_version", str(min_version))
+                write_to_log(("Invalid version number", line), lastest)
+        write_to_log(f"Yes{version}", lastest)
     if input_version == minecraft_log:
         minecraft_version = str(min_version)
     elif input_version == fabric_log:
         fabric_version = str(min_version)
+    print(f"{input_version[5:]}_version: {min_version}")
 
 
 def get_java_version():
@@ -179,7 +174,7 @@ def install_task(file_to_download):
                                    encoding="GBK")
         for line in install.stdout:
             print(line.rstrip())
-        start_server = open(dst_folder+"/StartServer.bat", "w")
+        start_server = open(dst_folder + "/StartServer.bat", "w")
         start_server.write("java -Xmx4G -jar -server fabric-server-launch.jar nogui")
         start_server.close()
     else:
