@@ -10,10 +10,10 @@ import requests
 from tqdm import tqdm
 from tkinter import filedialog
 
+version = ""
 minecraft_version = "none"
 fabric_version = "none"
 java_version = "none"
-version = ""
 src_folder = ""
 dst_folder = ""
 minecraft_log = "logs/minecraft.log"
@@ -52,7 +52,6 @@ def folder_select():
 
 
 def read_mod_versions(mods_folder):
-    global minecraft_version, fabric_version, java_version
     for file_name in os.listdir(mods_folder):
         if not file_name.endswith(".jar"):
             continue
@@ -62,37 +61,22 @@ def read_mod_versions(mods_folder):
         try:
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 json_data = zip_ref.read('fabric.mod.json')
-        except (KeyError, zipfile.BadZipFile):
-            print(f"{file_name} does not contain a valid fabric.mod.json file")
-            continue
-
-        try:
             mod_data = json.loads(json_data)
         except json.decoder.JSONDecodeError:
-            print(f"{file_name} can not be decoded")
+            continue
+        except (KeyError, zipfile.BadZipFile):
             continue
         if "depends" not in mod_data:
-            print(f"{file_name}: fabric.mod.json file does not contain 'depends' key")
             continue
-        minecraft_version = mod_data["depends"].get("minecraft")
-        if minecraft_version:
-            write_to_log(minecraft_version, minecraft_log)
-        else:
-            print(f"{file_name}: fabric.mod.json file does not contain minecraft_version")
-
-        fabric_version = mod_data["depends"].get("fabricloader")
-        if fabric_version:
-            write_to_log(fabric_version, fabric_log)
-        else:
-            print(f"{file_name}: fabric.mod.json file does not contain fabric_version")
-
-        java_version = mod_data["depends"].get("java")
-        if java_version:
-            write_to_log(java_version, "logs/java.log")
-        else:
-            print(f"{file_name}: fabric.mod.json file does not contain java_version")
-
-        print(f"Minecraft {minecraft_version}\nFabricLoader {fabric_version}\nJava {java_version}")
+        parsed_minecraft_version = mod_data["depends"].get("minecraft")
+        parsed_fabric_version = mod_data["depends"].get("fabricloader")
+        parsed_java_version = mod_data["depends"].get("java")
+        if parsed_minecraft_version:
+            write_to_log(parsed_minecraft_version, minecraft_log)
+        if parsed_fabric_version:
+            write_to_log(parsed_fabric_version, fabric_log)
+        if parsed_java_version:
+            write_to_log(parsed_java_version, java_log)
 
 
 def write_to_log(log_version, log_file):
@@ -126,24 +110,20 @@ def get_minecraft_or_fabric_version(input_version):
                 version = semver.parse_version_info(str(version_range[2:]))
                 if not semver.match(min_version, version_range):
                     min_version = str(version)
+                elif version_range.startswith("<"):
+                    version = semver.parse_version_info(version_range[1:])
+                    if not semver.match(max_version, version_range):
+                        max_version = str(version)
+                else:
+                    version = semver.parse_version_info(version_range)
+                    min_version = max_version = str(version)
             except (ValueError, TypeError):
                 write_to_log(("Invalid version number or type", line), lastest)
-        elif version_range.startswith("<"):
-            version = semver.parse_version_info(version_range[1:])
-            if not semver.match(max_version, version_range):
-                max_version = str(version)
-        else:
-            try:
-                version = semver.parse_version_info(version_range)
-                min_version = max_version = str(version)
-            except ValueError:
-                write_to_log(("Invalid version number", line), lastest)
         write_to_log(f"Yes{version}", lastest)
-    if input_version == minecraft_log:
-        minecraft_version = str(min_version)
-    elif input_version == fabric_log:
-        fabric_version = str(min_version)
-    print(f"{input_version[5:]}_version: {min_version}")
+        if input_version == minecraft_log:
+            minecraft_version = str(min_version)
+        elif input_version == fabric_log:
+            fabric_version = str(min_version)
 
 
 def get_java_version():
