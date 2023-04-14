@@ -9,6 +9,7 @@ import subprocess
 import requests
 from tqdm import tqdm
 from tkinter import filedialog
+import re
 
 version = ""
 minecraft_version = "none"
@@ -94,36 +95,35 @@ def init_logs(log_files):
 
 
 def get_minecraft_or_fabric_version(input_version):
-    global version, minecraft_version, fabric_version
-    lastest = "logs/lastest.log"
     with open(input_version, 'r') as f:
         lines = f.readlines()
-    min_version, max_version = "0.0.0", "999999999.999999999.999999999"
+
+    min_version, max_version = '', ''
+
     for line in lines:
         version_range = line.strip()
-        if version_range == '*':
+        if not re.match(r'^\d+\.\d+\.\d+$', version_range):
             continue
-        if version_range.startswith("~"):
-            min_version = version_range[1:]
-        elif version_range.startswith(">="):
-            try:
-                version = semver.parse_version_info(str(version_range[2:]))
-                if not semver.match(min_version, version_range):
-                    min_version = str(version)
-                elif version_range.startswith("<"):
-                    version = semver.parse_version_info(version_range[1:])
-                    if not semver.match(max_version, version_range):
-                        max_version = str(version)
-                else:
-                    version = semver.parse_version_info(version_range)
-                    min_version = max_version = str(version)
-            except (ValueError, TypeError):
-                write_to_log(("Invalid version number or type", line), lastest)
-        write_to_log(f"Yes{version}", lastest)
-        if input_version == minecraft_log:
-            minecraft_version = str(min_version)
-        elif input_version == fabric_log:
-            fabric_version = str(min_version)
+
+        try:
+            version = semver.parse_version_info(version_range)
+        except ValueError:
+            continue
+
+        if min_version:
+            min_version = max(min_version, str(version))
+        else:
+            min_version = str(version)
+
+        if max_version:
+            max_version = min(max_version, str(version))
+        else:
+            max_version = str(version)
+
+    if input_version == 'minecraft_log':
+        return minecraft_version
+    elif input_version == 'fabric_log':
+        return fabric_version
 
 
 def get_java_version():
