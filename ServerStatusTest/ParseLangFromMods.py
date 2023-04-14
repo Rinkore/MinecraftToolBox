@@ -9,25 +9,28 @@ def extract_assets():
     source_folder = source_folder_entry.get()
     target_folder = os.path.join(source_folder, "..", "langs-by-MTB")
 
-    if not os.path.exists(target_folder):
-        os.makedirs(target_folder)
+    create_folder(target_folder)
 
     for root, dirs, files in os.walk(source_folder):
         for file in files:
             if file.endswith(".jar"):
-                jar_file = os.path.join(root, file)
-                if not os.path.exists(target_folder):
-                    os.makedirs(target_folder)
-                langs_path = os.path.join(target_folder)
-                if not os.path.exists(langs_path):
-                    os.makedirs(langs_path)
-                with zipfile.ZipFile(jar_file, 'r') as zip_ref:
-                    for file_name in zip_ref.namelist():
-                        if 'assets/' in file_name and '/lang/' in file_name:
-                            print(file_name,langs_path)
-                            zip_ref.extract(file_name, langs_path)
+                extract_from_jar(os.path.join(root, file), target_folder)
 
-    result_label.config(text="提取完成！")
+    result_label.config(text="提取完成!")
+
+
+def create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+
+def extract_from_jar(jar_file, target_folder):
+    langs_path = os.path.join(target_folder)
+    create_folder(langs_path)
+    with zipfile.ZipFile(jar_file, 'r') as zip_ref:
+        for file_name in zip_ref.namelist():
+            if 'assets/' in file_name and '/lang/' in file_name:
+                zip_ref.extract(file_name, langs_path)
 
 
 def choose_source_folder():
