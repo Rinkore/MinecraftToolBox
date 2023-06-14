@@ -5,7 +5,7 @@ import time
 import json
 import tkinter as tk
 from tkinter import ttk
-
+import statistics
 
 class MinecraftServerStatusTest:
     def __init__(self, hostname, port, timeout=0.6, use_hostname=False):
@@ -16,11 +16,11 @@ class MinecraftServerStatusTest:
 
     async def get_server_info(self):
         try:
-            start_time = time.time()
             ip = self.hostname if self.use_hostname else \
                 (await asyncio.get_event_loop().getaddrinfo(self.hostname, self.port, proto=socket.IPPROTO_TCP))[0][4][
                     0]
             reader, writer = await asyncio.wait_for(asyncio.open_connection(ip, self.port), timeout=self.timeout)
+            start_time = time.time()
             writer.write(bytearray([0xFE, 0x01]))
             data_raw = await asyncio.wait_for(reader.read(1024), timeout=self.timeout)
             writer.close()
@@ -40,26 +40,24 @@ class MinecraftServerStatusTest:
 
 
 async def get_ports_info(hostname, ports):
-    tasks = [MinecraftServerStatusTest(hostname, port).get_server_info() for port in ports for _ in range(5)]
+    tasks = [asyncio.create_task(MinecraftServerStatusTest(hostname, port).get_server_info()) for port in ports for _ in range(5)]
     results = await asyncio.gather(*tasks)
     output = {}
     for result in results:
         port = result[1]
         if result[0]:
             output.setdefault(port, []).append(result)
-
     for port in ports:
         if not output.get(port):
             print(f"{hostname}:{port}----ALL REQUEST FAILED")
-
     return output
 
 
 async def print_ports_info(hostname, ports):
+    await warmup_connection(hostname, ports[0])  # 预热第一个端口的连接
     ports_info = await get_ports_info(hostname, ports)
     for port, port_results in ports_info.items():
-        delay_sum = sum(result[2] for result in port_results)
-        avg_delay = delay_sum / len(port_results)
+        avg_delay = statistics.mean(result[2] for result in port_results)
 
         # 将数据添加到表格中
         tree.insert("", "end", values=(port, f"{avg_delay:.2f}ms"
@@ -69,6 +67,15 @@ async def print_ports_info(hostname, ports):
                                        , json.loads(json.dumps(port_results[0][3]["motd"]))
                                        )
                     )
+
+
+async def warmup_connection(hostname, port):
+    try:
+        ip = (await asyncio.get_event_loop().getaddrinfo(hostname, port, proto=socket.IPPROTO_TCP))[0][4][0]
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(ip, port), timeout=0.1)
+        writer.close()
+    except:
+        pass
 
 
 def start_scan():
@@ -138,3 +145,4 @@ def on_resize(event):
 tree.bind("<Configure>", on_resize)
 
 root.mainloop()
+
