@@ -116,11 +116,12 @@ def clear_tree():
 # 创建更新日志窗口
 def show_update_log():
     update_log_window = tk.Toplevel(root)
-    update_log_window.title("Update Log")
+    update_log_window.title("更新日志")
 
     # 在更新日志窗口中显示更新日志内容
     update_log_label = tk.Label(update_log_window, text="广告：多种面版服出租请找Rinkore\n"
-                                                        "QQ：2213340209    先开服后付款\n"
+                                                        "QQ：2213340209    帮开好服,满意再付款\n"
+                                                        "v1.3.1: 中文化了界面元素，微调UI"
                                                         "v1.3.0：新增更新日志和清空查询结果功能\n"
                                                         "v1.2.1：新增了默认查询端口25565"
                                                         "v1.2.0：修复了第一次连接主机造成的延迟虚高的问题\n"
@@ -145,7 +146,7 @@ for i in range(column_tot):
 root.grid_columnconfigure(column_tot, weight=99)
 
 # IP地址标签和输入框
-ip_label = tk.Label(root, text="IP:")
+ip_label = tk.Label(root, text="服务器主机地址:")
 ip_label.grid(row=0, column=0)
 
 ip_entry = tk.Entry(root)
@@ -153,7 +154,7 @@ ip_entry.grid(row=0, column=1, columnspan=column_tot, sticky="ew")
 ip_entry.insert(0, "ipv4.rinkore.com")
 
 # 起始端口标签和输入框
-start_port_label = tk.Label(root, text="Start Port（必填）:")
+start_port_label = tk.Label(root, text="起始端口（必填）:")
 start_port_label.grid(row=1, column=0)
 
 start_port_entry = tk.Entry(root)
@@ -161,7 +162,7 @@ start_port_entry.grid(row=1, column=1, columnspan=column_tot, sticky="ew")
 start_port_entry.insert(0, "25565")
 
 # 终止端口标签和输入框
-end_port_label = tk.Label(root, text="End Port（可空）:")
+end_port_label = tk.Label(root, text="结束端口（可空）:")
 end_port_label.grid(row=2, column=0)
 
 end_port_entry = tk.Entry(root)
@@ -176,8 +177,8 @@ update_log_button = tk.Button(root, text="更新日志", command=show_update_log
 update_log_button.grid(row=3, column=0, sticky="nsw")
 
 # 开始扫描按钮
-scan_button = tk.Button(root, text="Start Scan", command=start_scan)
-scan_button.grid(row=3, column=1, columnspan=column_tot, sticky="ew")
+scan_button = tk.Button(root, text="开始查询", command=start_scan)
+scan_button.grid(row=3, column=1, columnspan=column_tot, sticky="nsew")
 
 # 创建Treeview
 tree = ttk.Treeview(root, columns=("port", "delay", "online_players", "max_players", "version", "motd"),
@@ -185,12 +186,12 @@ tree = ttk.Treeview(root, columns=("port", "delay", "online_players", "max_playe
 tree.grid(row=4, column=0, columnspan=column_tot+1, sticky="nsew")
 
 # 设置列标题
-tree.heading("port", text="Port")
-tree.heading("delay", text="Delay")
-tree.heading("version", text="version")
-tree.heading("motd", text="motd")
-tree.heading("online_players", text="online_players")
-tree.heading("max_players", text="max_players")
+tree.heading("port", text="端口")
+tree.heading("delay", text="延迟")
+tree.heading("online_players", text="在线玩家数")
+tree.heading("max_players", text="最大玩家数")
+tree.heading("version", text="游戏版本")
+tree.heading("motd", text="服务器今日讯息")
 
 
 # 调整列宽度
