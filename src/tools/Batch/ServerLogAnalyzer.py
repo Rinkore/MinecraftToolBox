@@ -20,7 +20,7 @@ def file_select():
         log = f.read()
 
     # 读取错误信息和错误原因的JSON文件
-    with open('.\\server\\fabricloader.log.json', 'r', encoding='utf-8') as f:
+    with open('../../config/fabricloader.log.json', 'r', encoding='utf-8') as f:
         error_dict = json.load(f)
 
     # 遍历错误信息和错误原因的字典，查找匹配错误信息的正则表达式

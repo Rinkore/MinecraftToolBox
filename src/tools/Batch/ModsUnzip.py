@@ -8,7 +8,7 @@ import zipfile
 # 定义函数，用于解压jar文件中的assets文件夹
 def extract_assets(jar_path):
     # 创建langs/A文件夹
-    langs_path = os.path.join(os.path.dirname(jar_path), '..', 'langs-by-MTB')
+    langs_path = os.path.join(os.path.dirname(jar_path), '', 'langs-by-MTB')
     print(langs_path)
     if not os.path.exists(langs_path):
         os.makedirs(langs_path)
@@ -40,7 +40,7 @@ def run_program():
     os.chdir(mods_folder_path)
 
     # 遍历目标文件夹中的所有文件
-    for file_name in os.listdir('.'):
+    for file_name in os.listdir('../ServerStatusTest'):
         print(file_name)
         # 如果文件是一个jar文件，则解压assets文件夹
         if file_name.endswith('.jar'):

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/ServerStatusTest/ClientToServer.py" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/ServerStatusTest/ParseLangFromMods.py" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/ServerStatusTest/ServerStatusTest.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ServerStatusTest/logs/lastest.log" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/tools/Batch/ClientToServer.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/tools/Batch/ParseLangFromMods.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/tools/ServerStatusTest/Windows.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/tools/ServerStatusTest/style/android.kv" charset="UTF-8" />
   </component>
 </project>

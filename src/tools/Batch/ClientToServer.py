@@ -31,7 +31,7 @@ def folder_select():
     src_folder = filedialog.askdirectory(title="请选择Minecraft客户端文件夹")
 
     # 定义server文件夹路径
-    dst_folder = os.path.join(os.path.dirname(src_folder), "server-by-MTB")
+    dst_folder = os.path.join(os.path.dirname(src_folder), "config-by-MTB")
 
     # 如果server文件夹已经存在，则先删除它
     if os.path.exists(dst_folder):
@@ -148,14 +148,14 @@ def install_task(file_to_download):
                                        reporthook=lambda b, bsize, tsize: t.update(bsize))
         print("fabric-installer.jar下载完成")
         print("安装fabric中")
-        command = f'java -jar fabric-installer.jar server -mcversion {minecraft_version} -downloadMinecraft'
+        command = f'java -jar fabric-installer.jar config -mcversion {minecraft_version} -downloadMinecraft'
         # 使用subprocess运行命令
         install = subprocess.Popen(command, cwd=dst_folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    encoding="GBK")
         for line in install.stdout:
             print(line.rstrip())
         start_server = open(dst_folder + "/StartServer.bat", "w")
-        start_server.write("java -Xmx4G -jar -server fabric-server-launch.jar nogui")
+        start_server.write("java -Xmx4G -jar -config fabric-config-launch.jar nogui")
         start_server.close()
     else:
         print("安装错误")

@@ -28,6 +28,7 @@ class MinecraftServerStatusTest:
             server_info = codecs.utf_16_be_decode(data_raw[1:])[0].split('\x00')
             info = {'version': server_info[2], 'motd': server_info[3], 'online_players': server_info[4],
                     'max_players': server_info[5]}
+
             end_time = time.time()
             delay = int((end_time - start_time) * 1000)
             return True, self.port, delay, info
@@ -65,7 +66,9 @@ async def print_ports_info(hostname, ports):
                                        , json.loads(json.dumps(port_results[0][3]["online_players"]))
                                        , json.loads(json.dumps(port_results[0][3]["max_players"]))
                                        , json.loads(json.dumps(port_results[0][3]["version"]))
-                                       , json.dumps(port_results[0][3]["motd"])))
+                                       , json.loads(json.dumps(port_results[0][3]["motd"]))
+                                       )
+                    )
 
 
 def start_scan():

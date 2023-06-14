@@ -7,7 +7,7 @@ import zipfile
 
 def extract_assets():
     source_folder = source_folder_entry.get()
-    target_folder = os.path.join(source_folder, "..", "langs-by-MTB")
+    target_folder = os.path.join(source_folder, "", "langs-by-MTB")
 
     create_folder(target_folder)
 
