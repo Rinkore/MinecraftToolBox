@@ -61,7 +61,7 @@ def generate_image(width, height):
 
 def extract_assets():
     source_folder = source_folder_entry.get()
-    target_folder = os.path.join(source_folder, "..", "langs-by-MTB")
+    target_folder = os.path.abspath(os.path.join(source_folder, "..", "langs-by-MTB"))
 
     create_folder(target_folder)
 
@@ -73,7 +73,13 @@ def extract_assets():
     create_meta_files(target_folder)
     img = generate_image(64, 64)
     img.save(os.path.join(target_folder, 'pack.png'))
-    result_label.config(text="提取完成!")
+
+    result_label.config(text="提取完成!\n"
+                             "本地化文件提取到\n"
+                             f"{target_folder}")
+
+    # 在提取完成后打开目标文件夹
+    os.startfile(target_folder)
 
 
 def choose_source_folder():
@@ -84,22 +90,38 @@ def choose_source_folder():
 
 # 创建图形界面
 root = tk.Tk()
-root.title("提取assets文件夹")
-root.geometry("400x200")
+root.title("Minecraft本地化资源包提取器")
 
-source_folder_label = tk.Label(root, text="选择源文件夹:")
-source_folder_label.grid(row=0, column=0, padx=10, pady=10)
+# 禁止调整窗口大小
+root.minsize(width=350, height=300)
+root.resizable(width=False, height=False)
 
-source_folder_entry = tk.Entry(root)
-source_folder_entry.grid(row=0, column=1)
+# 使用Frame容器
+main_frame = tk.Frame(root, padx=20, pady=10)
+main_frame.grid(sticky="nsew")
 
-source_folder_button = tk.Button(root, text="选择文件夹", command=choose_source_folder)
-source_folder_button.grid(row=0, column=2)
+# 在Frame上设置行列权重
+main_frame.rowconfigure(0, weight=1)
+main_frame.columnconfigure(0, weight=1)
 
-run_button = tk.Button(root, text="开始提取", command=extract_assets)
-run_button.grid(row=2, column=1, pady=20)
+# 放置元素
 
-result_label = tk.Label(root, text="")
-result_label.grid(row=3, column=1)
+source_folder_label = tk.Label(main_frame, text="选择mods文件夹:")
+source_folder_label.grid(row=0, column=0, pady=20, padx=10, sticky="w")
+
+source_folder_entry = tk.Entry(main_frame)
+source_folder_entry.grid(row=0, column=0, pady=20, padx=10, sticky="e")
+
+source_folder_button = tk.Button(main_frame, text="选择文件夹", command=choose_source_folder)
+source_folder_button.grid(row=1, column=0, pady=20, padx=10, sticky="w")
+
+run_button = tk.Button(main_frame, text="开始提取", command=extract_assets)
+run_button.grid(row=1, column=0, pady=20, padx=10, sticky="e")
+
+result_label = tk.Label(main_frame, text="")
+result_label.grid(row=2, column=0, padx=10, sticky="ew")
+
+version_label = tk.Label(main_frame, text="Minecraft本地化资源包提取器 v1.1 Powered by Rinkore")
+version_label.grid(row=3, column=0, padx=10, sticky="ew")
 
 root.mainloop()
